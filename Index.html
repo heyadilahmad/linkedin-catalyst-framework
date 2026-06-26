@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The LinkedIn Catalyst Framework</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F78C9',
+                        charcoal: '#1E1E1E',
+                        darkgray: '#4A4A4A',
+                        lightgray: '#E5E7EB',
+                        bg: '#F8FAFC',
+                        bordercolor: '#D1D5DB',
+                        /* Accents for visual guide */
+                        cyan: '#26a6c9',
+                        green: '#15a36d',
+                        amber: '#f1a208',
+                        red: '#e05252',
+                        violet: '#725ac1',
+                    },
+                    fontFamily: {
+                        heading: ['"Archivo Black"', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                        mono: ['"Roboto Mono"', 'ui-monospace', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Mermaid.js for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#F8FAFC',
+                primaryTextColor: '#1E1E1E',
+                primaryBorderColor: '#4F78C9',
+                lineColor: '#4F78C9',
+                secondaryColor: '#4F78C9',
+                tertiaryColor: '#E5E7EB',
+                fontFamily: 'Inter'
+            },
+            flowchart: {
+                curve: 'basis'
+            }
+        });
+    </script>
+
+    <style>
+        /* Base Variables matching the requested palette */
+        :root {
+            --ink: #1E1E1E;
+            --muted: #4A4A4A;
+            --line: #D1D5DB;
+            --paper: #F8FAFC;
+            --panel: #FFFFFF;
+            --blue: #4F78C9;
+            --cyan: #26a6c9;
+            --green: #15a36d;
+            --amber: #f1a208;
+            --red: #e05252;
+            --violet: #725ac1;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: var(--paper);
+            color: var(--ink);
+        }
+        
+        .editorial-shadow {
+            box-shadow: var(--shadow);
+        }
+        
+        /* Pyramid & Funnel CSS (Main Doc) */
+        .pyramid-level { transition: all 0.3s ease; }
+        .pyramid-level:hover { transform: scale(1.02); filter: brightness(1.1); }
+        
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: #FFF !important; }
+            .content-card { box-shadow: none !important; border: 1px solid #D1D5DB !important; break-inside: avoid; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #4F78C9; border-radius: 4px; }
+
+        /* =========================================================
+           VISUAL GUIDE APPENDIX CSS
+           ========================================================= */
+        .vg-wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+        .vg-hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+        .vg-hero-chip { border: 1px solid rgba(255,255,255,0.18); padding: 12px; border-radius: var(--radius); color: #e2e8f0; min-height: 74px; }
+        .vg-section { margin: 22px 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); overflow: hidden; }
+        .vg-kicker { color: var(--blue); font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-family: "Roboto Mono", monospace; }
+        .vg-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+        .vg-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .vg-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: #fff; }
+        .vg-box strong { display: block; margin-bottom: 6px; font-size: 15px; }
+        .vg-mini { color: var(--muted); font-size: 14px; }
+        .vg-pill { display: inline-block; padding: 5px 10px; border-radius: 999px; background: #eaf4ff; color: var(--blue); font-weight: 700; font-size: 12px; margin: 4px 4px 0 0; }
+        
+        .vg-flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: center; }
+        .vg-flow-step { position: relative; min-height: 118px; padding: 15px; border: 1px solid var(--line); border-radius: var(--radius); background: #fbfdff; }
+        .vg-flow-step:not(:last-child)::after { content: ">"; position: absolute; right: -13px; top: 44px; width: 22px; height: 22px; border-radius: 50%; color: white; background: var(--blue); display: grid; place-items: center; font-weight: 800; z-index: 2; }
+        .vg-num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: white; font-weight: 800; margin-bottom: 10px; }
+        
+        .vg-mindmap { position: relative; min-height: 470px; }
+        .vg-mind-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 210px; height: 210px; border-radius: 50%; background: var(--blue); color: white; display: grid; place-items: center; text-align: center; padding: 24px; font-size: 24px; font-weight: 850; box-shadow: 0 20px 42px rgba(79, 120, 201, 0.28); z-index: 3; font-family: "Archivo Black", sans-serif;}
+        .vg-mind-node { position: absolute; width: 210px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: white; z-index: 2; }
+        .vg-mind-node::before { content: ""; position: absolute; height: 2px; background: var(--line); top: 50%; width: 80px; z-index: -1; }
+        .vg-mind-node.left::before { right: -80px; }
+        .vg-mind-node.right::before { left: -80px; }
+        .vg-n1 { left: 6%; top: 8%; border-top: 5px solid var(--cyan); }
+        .vg-n2 { right: 6%; top: 8%; border-top: 5px solid var(--green); }
+        .vg-n3 { left: 2%; top: 42%; border-top: 5px solid var(--amber); }
+        .vg-n4 { right: 2%; top: 42%; border-top: 5px solid var(--red); }
+        .vg-n5 { left: 16%; bottom: 2%; border-top: 5px solid var(--violet); }
+        .vg-n6 { right: 16%; bottom: 2%; border-top: 5px solid var(--blue); }
+
+        .vg-framework { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .vg-framework-card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: white; }
+        .vg-framework-card .top { min-height: 80px; padding: 16px; color: white; font-weight: 850; font-size: 22px; font-family: "Archivo Black", sans-serif; }
+        .vg-framework-card .body { padding: 14px; }
+        .vg-blue { background: var(--blue); } .vg-green { background: var(--green); } .vg-amber { background: var(--amber); } .vg-violet { background: var(--violet); }
+
+        .vg-timeline { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding-top: 28px; }
+        .vg-timeline::before { content: ""; position: absolute; top: 42px; left: 7%; right: 7%; height: 4px; background: var(--line); }
+        .vg-time-item { position: relative; padding-top: 46px; }
+        .vg-dot { position: absolute; top: 4px; left: 12px; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); border: 4px solid white; box-shadow: 0 0 0 2px var(--blue); }
+
+        .vg-table-wrap table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: var(--radius); font-size: 14px; }
+        .vg-table-wrap th, .vg-table-wrap td { padding: 13px 12px; border: 1px solid var(--line); vertical-align: top; text-align: left; }
+        .vg-table-wrap th { background: #edf6ff; color: var(--blue); font-family: "Roboto Mono", monospace; text-transform: uppercase; font-size: 12px;}
+
+        .vg-pyramid { width: min(720px, 100%); margin: 4px auto 0; display: grid; gap: 8px; }
+        .vg-pyr-level { margin-inline: auto; text-align: center; color: white; font-weight: 800; padding: 15px 18px; border-radius: var(--radius); font-family: "Archivo Black", sans-serif;}
+        .vg-p1 { width: 38%; background: var(--blue); } .vg-p2 { width: 54%; background: var(--cyan); } .vg-p3 { width: 70%; background: var(--green); } .vg-p4 { width: 86%; background: var(--amber); color: #2b2110; } .vg-p5 { width: 100%; background: var(--ink); }
+
+        .vg-funnel { width: min(760px, 100%); margin: 8px auto 0; display: grid; gap: 8px; }
+        .vg-funnel-level { margin-inline: auto; text-align: center; color: white; font-weight: 850; padding: 16px 20px; clip-path: polygon(5% 0, 95% 0, 86% 100%, 14% 100%); font-family: "Archivo Black", sans-serif;}
+        .vg-f1 { width: 100%; background: #0f766e; } .vg-f2 { width: 82%; background: var(--blue); } .vg-f3 { width: 64%; background: var(--violet); } .vg-f4 { width: 46%; background: var(--red); } .vg-f5 { width: 30%; background: var(--ink); }
+
+        .vg-infographic { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: center; }
+        .vg-big-stat { border-radius: var(--radius); background: var(--ink); color: white; padding: 28px; min-height: 320px; display: grid; align-content: center; gap: 16px; }
+        .vg-big-stat .large { font-size: clamp(52px, 8vw, 110px); line-height: 0.9; font-weight: 900; color: #7dd3fc; font-family: "Archivo Black", sans-serif;}
+        .vg-stat-list { display: grid; gap: 12px; }
+        .vg-stat { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: white; }
+        .vg-icon { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; color: white; font-size: 24px; font-weight: 900; }
+
+        .vg-process-map { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .vg-lane { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #fbfdff; }
+        .vg-lane h3 { padding: 12px 14px; background: #eaf4ff; margin: 0; color: var(--blue); font-family: "Archivo Black", sans-serif; font-size: 16px;}
+        .vg-lane .vg-box { margin: 12px; min-height: 84px; }
+
+        .vg-decision { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+        .vg-tree { display: grid; gap: 12px; }
+        .vg-question { border: 2px solid var(--blue); border-radius: var(--radius); padding: 14px; background: #f0f8ff; font-weight: 850; }
+        .vg-branch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .vg-answer { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; background: white; }
+        .vg-yes { border-left: 5px solid var(--green); } .vg-no { border-left: 5px solid var(--red); }
+        .vg-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+        .vg-check { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: #fbfdff; }
+        .vg-check::before { content: "✓"; color: var(--green); font-weight: 900; margin-right: 8px; }
+
+        @media (max-width: 920px) {
+            .vg-hero-grid, .vg-grid-2, .vg-grid-3, .vg-framework, .vg-timeline, .vg-infographic, .vg-process-map, .vg-decision { grid-template-columns: 1fr; }
+            .vg-flow { grid-template-columns: 1fr; }
+            .vg-flow-step:not(:last-child)::after { content: "v"; right: 50%; top: auto; bottom: -16px; transform: translateX(50%); }
+            .vg-mindmap { min-height: auto; display: grid; gap: 12px; }
+            .vg-mind-center, .vg-mind-node { position: static; transform: none; width: 100%; height: auto; border-radius: var(--radius); }
+            .vg-mind-node::before, .vg-timeline::before, .vg-dot { display: none; }
+            .vg-time-item { padding-top: 0; }
+            .vg-branch-row, .vg-checklist { grid-template-columns: 1fr; }
+            .vg-p1, .vg-p2, .vg-p3, .vg-p4, .vg-p5, .vg-f1, .vg-f2, .vg-f3, .vg-f4, .vg-f5 { width: 100%; }
+        }
+    </style>
+</head>
+<body class="font-body antialiased leading-relaxed tracking-tight">
+
+    <header class="bg-charcoal text-white pt-24 pb-32 px-6 md:px-12 border-b-[16px] border-primary relative overflow-hidden">
+        <div class="max-w-6xl mx-auto relative z-10">
+            <span class="font-mono text-primary font-bold tracking-[0.2em] text-sm md:text-base uppercase mb-6 block">Intelligence Report • 2026 Edition</span>
+            <h1 class="font-heading text-5xl md:text-7xl lg:text-8xl leading-[0.95] mb-8 text-white uppercase">
+                The LinkedIn<br>
+                <span class="text-primary">Catalyst</span><br>
+                Framework
+            </h1>
+            <p class="text-xl md:text-2xl text-lightgray max-w-3xl font-light">
+                A strategic catalyst for algorithmic growth, semantic relevance, and B2B lead generation under the new Interest Graph paradigm. Synthesizing algorithmic engineering documentation, multi-million-post empirical studies, and premier copywriting methodologies to ignite your personal brand.
+            </p>
+            
+            <div class="mt-8 flex flex-col items-start gap-2 border-l-4 border-primary pl-4 no-print">
+                <div class="text-sm md:text-base text-lightgray font-mono">
+                    <strong class="text-white">Prepared by:</strong> Adil Ahmad
+                </div>
+                <div class="text-xs md:text-sm text-lightgray/80 font-mono">
+                    Compiled with the help of extensive research using blogs, forums, and AI.
+                </div>
+            </div>
+            
+            <div class="mt-10 inline-block bg-primary/20 border border-primary/50 rounded-xl p-4 md:p-6 no-print backdrop-blur-sm">
+                <h3 class="font-heading text-xl text-white mb-2">Claim Your Free Consultation & Blueprint Copy</h3>
+                <p class="text-sm text-lightgray mb-4">Get personalized strategies directly from Adil Ahmad and a pristine copy of this Catalyst Framework.</p>
+                <a href="https://topmate.io/theadilahmad/878470" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center bg-primary text-white font-bold font-mono text-sm uppercase px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors">
+                    Book Free Strategy Call ➔
+                </a>
+            </div>
+        </div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-primary opacity-20 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 md:px-12 py-16 space-y-24">
+
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">01 / The Evolution</span>
+            <h2 class="font-heading text-4xl mb-8">The Algorithmic Paradigm Shift</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-12">
+                <div class="space-y-6">
+                    <p class="text-lg text-darkgray leading-relaxed">
+                        The underlying architecture of the LinkedIn platform underwent a fundamental and irreversible transformation between the fourth quarter of 2024 and the beginning of 2026. Pivoting aggressively away from a traditional "Social Graph" model—where content distribution relied heavily on the size of a user's network and chronological proximity—the platform successfully transitioned to an AI-driven "Interest Graph".
+                    </p>
+                    <p class="text-lg text-darkgray leading-relaxed">
+                        This paradigm shift was driven by the deployment of the <strong>"360Brew"</strong> algorithmic framework, a massive 150-billion-parameter foundation model based on Meta's LLaMA 3 architecture. By replacing thousands of fragmented recommendation systems with a unified, decoder-only large language model, LinkedIn fundamentally redefined content discovery, prioritizing <strong>semantic relevance, topical authority, and deep consumption</strong> over sheer follower volume and passive vanity metrics.
+                    </p>
+                    <p class="text-lg text-darkgray leading-relaxed">
+                        Historically, a large follower count practically guaranteed widespread content distribution. The 2026 iteration dismantles this. Visibility for top-tier niche creators surged from 15% to 31%, indicating a stark concentration of reach among those who consistently demonstrate topical authority. The system semantically matches the content of a post with the professional history, profile data, and recent engagement behaviors of potential readers. Keyword stuffing is entirely obsolete.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl border border-bordercolor editorial-shadow">
+                    <h3 class="font-heading text-xl mb-6 border-b border-bordercolor pb-4">Evolution Timeline</h3>
+                    <div class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-lightgray before:to-transparent">
+                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-lightgray text-charcoal shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 font-mono text-xs">Pre '24</div>
+                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-bg p-4 rounded-xl border border-bordercolor">
+                                <h4 class="font-bold text-charcoal">Legacy Social Graph</h4>
+                                <p class="text-sm text-darkgray mt-1">Reach dictated by follower count and recency.</p>
+                            </div>
+                        </div>
+                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-primary text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 font-mono text-xs">2025</div>
+                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-bg p-4 rounded-xl border border-primary/20">
+                                <h4 class="font-bold text-charcoal">The Transition</h4>
+                                <p class="text-sm text-darkgray mt-1">Introduction of semantic matching and dual-encoders.</p>
+                            </div>
+                        </div>
+                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-charcoal text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 font-mono text-xs">2026</div>
+                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-primary text-white p-4 rounded-xl shadow-md">
+                                <h4 class="font-bold">360Brew Engine</h4>
+                                <p class="text-sm text-white/80 mt-1">Unified 150B parameter LLM. Dwell time & Saves rule.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mb-8">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700 w-1/3">Architectural Feature</th>
+                            <th class="p-4 border-b border-gray-700 w-1/3 bg-darkgray">Pre-2024 Social Graph Era</th>
+                            <th class="p-4 border-b border-gray-700 w-1/3 bg-primary">2025–2026 Interest Graph Era</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm md:text-base">
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors">
+                            <td class="p-4 font-semibold text-charcoal">Primary Distribution Vector</td>
+                            <td class="p-4 text-darkgray">Network connections and chronological proximity</td>
+                            <td class="p-4 font-medium text-primary">Topical relevance, semantic similarity, and dwell time</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors">
+                            <td class="p-4 font-semibold text-charcoal">Value of Follower Count</td>
+                            <td class="p-4 text-darkgray">Exceptionally High: Directly dictated initial reach</td>
+                            <td class="p-4 font-medium text-primary">Low to Moderate: Replaced by historic topical consistency</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors">
+                            <td class="p-4 font-semibold text-charcoal">Primary Engagement Metric</td>
+                            <td class="p-4 text-darkgray">Likes and rapid reactions (vanity metrics)</td>
+                            <td class="p-4 font-medium text-primary">Dwell time, saves, and deeply threaded comments</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors">
+                            <td class="p-4 font-semibold text-charcoal">Content Lifespan</td>
+                            <td class="p-4 text-darkgray">24 to 48 hours (heavy recency bias)</td>
+                            <td class="p-4 font-medium text-primary">Weeks to months (resurfacing of evergreen relevance)</td>
+                        </tr>
+                        <tr class="hover:bg-bg transition-colors">
+                            <td class="p-4 font-semibold text-charcoal">Underlying AI Infrastructure</td>
+                            <td class="p-4 text-darkgray">Fragmented keyword-matching and heuristic systems</td>
+                            <td class="p-4 font-medium text-primary">Unified 150B parameter LLM (dual-encoder architecture)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">02 / Process Map</span>
+            <h2 class="font-heading text-4xl mb-8">The Four-Stage Distribution Protocol</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center mb-8">
+                <div class="lg:col-span-1 space-y-4">
+                    <p class="text-md text-darkgray leading-relaxed">
+                        When a creator publishes a post, it does not simply broadcast to their follower base; rather, it enters a highly restrictive, four-stage algorithmic audition designed to measure quality and resonance.
+                    </p>
+                    <ul class="space-y-3 text-sm text-darkgray list-disc pl-5">
+                        <li><strong>Stage 1 (Instant):</strong> Immediate quality filtering, analyzing text and formats to flag spam or bait.</li>
+                        <li><strong>Stage 2 (0-60 Mins):</strong> The Initial Audience Test. Served to 2 to 5 percent of highly engaged network and semantic matches.</li>
+                        <li><strong>Stage 3 (2-6 Hours):</strong> Scoring phase. Multi-sentence comments are weighted 15x. Shares 5x. Saves get massive priority.</li>
+                        <li><strong>Stage 4 (Extended):</strong> Dual-encoder retrieves out-of-network audiences based entirely on the Interest Graph.</li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-bordercolor editorial-shadow">
+                    <div class="w-full overflow-x-auto flex justify-center">
+                        <pre class="mermaid">
+                            graph TD
+                                Start[User Publishes Post] --> Stage1
+                                
+                                subgraph Stage 1 Quality Filter
+                                    Stage1{AI Content Analysis}
+                                    Stage1 -->|Spam or Bait| Halt[Distribution Halted]
+                                    Stage1 -->|Passes Filter| Stage2
+                                end
+                                
+                                subgraph Stage 2 Initial Test
+                                    Stage2[Serve to highly engaged network]
+                                    Stage2 --> Assess2{Engagement Velocity}
+                                end
+                                
+                                subgraph Stage 3 Scoring
+                                    Assess2 -->|Low Dwell Time| Halt2[Suppressed Reach]
+                                    Assess2 -->|High Dwell Time| Stage3[Calculate Score Multipliers]
+                                    Stage3 -.-> M1(Likes 1x)
+                                    Stage3 -.-> M2(Shares 5x)
+                                    Stage3 -.-> M3(Multi sentence Comments 15x)
+                                    Stage3 -.-> M4(Saves Massive Priority)
+                                    Stage3 --> Assess3{Threshold Met}
+                                end
+                                
+                                subgraph Stage 4 Extended Network
+                                    Assess3 -->|Yes| Stage4[Dual Encoder Retrieval]
+                                    Stage4 --> Push[Push to extended connections]
+                                end
+                                
+                                Assess3 -->|No| Stable[Standard Network Reach]
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 03 (Formerly 04): Content Strategy -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">03 / Content Strategy</span>
+            <h2 class="font-heading text-4xl mb-8">Content Architecture & Dwell Time</h2>
+            <p class="text-lg text-darkgray mb-10 max-w-4xl leading-relaxed">
+                The 2026 algorithm measures user experience primarily through <strong>dwell time</strong>. Posts under 3 seconds generate a negligible 1.2% engagement rate, resulting in halted distribution. 31 to 60 seconds triggers maximum distribution, and posts exceeding 61 seconds generate exceptional engagement rates of over 15%.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
+                <div class="flex flex-col items-center gap-2">
+                    <div class="pyramid-level w-full max-w-[40%] bg-charcoal text-white text-center py-6 px-4 rounded-t-xl shadow-lg border-b-4 border-primary">
+                        <h4 class="font-heading text-xl mb-1">Document Carousels</h4>
+                        <span class="font-mono text-xs uppercase bg-primary px-2 py-1 rounded text-white">6.6% - 7.0%</span>
+                    </div>
+                    <div class="pyramid-level w-full max-w-[60%] bg-primary text-white text-center py-6 px-4 shadow-md border-b-4 border-charcoal">
+                        <h4 class="font-heading text-lg mb-1">Short Video & Multi-Image</h4>
+                        <span class="font-mono text-xs uppercase bg-charcoal px-2 py-1 rounded text-white">6.0% - 6.45%</span>
+                    </div>
+                    <div class="pyramid-level w-full max-w-[80%] bg-bg border-2 border-primary text-charcoal text-center py-6 px-4 shadow-sm border-b-4 border-darkgray">
+                        <h4 class="font-heading text-lg mb-1">Text-Only Posts</h4>
+                        <span class="font-mono text-xs uppercase bg-darkgray px-2 py-1 rounded text-white">4.50%</span>
+                    </div>
+                    <div class="pyramid-level w-full max-w-[100%] bg-white border border-bordercolor text-darkgray text-center py-4 px-4 rounded-b-xl shadow-sm">
+                        <h4 class="font-heading text-base mb-1">External Link Posts</h4>
+                        <span class="font-mono text-xs uppercase bg-lightgray text-charcoal px-2 py-1 rounded">3.25% Penalized</span>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="border-l-4 border-primary pl-4">
+                        <h4 class="font-bold text-charcoal text-lg">Document Carousels (The Gold Standard)</h4>
+                        <p class="text-sm text-darkgray mt-1">Multi-page PDF uploads artificially inflate dwell time as users manually swipe. Optimal structure is 8 to 10 slides in square or portrait mode. High Save rates signal enduring reference material.</p>
+                    </div>
+                    <div class="border-l-4 border-charcoal pl-4">
+                        <h4 class="font-bold text-charcoal text-lg">Short-Form Native Video</h4>
+                        <p class="text-sm text-darkgray mt-1">Growing rapidly, but ruthlessly penalized for low completion rates. Requires 30 to 90 second vertical format with hardcoded captions. Authentic talking-head videos outperform corporate graphics.</p>
+                    </div>
+                    <div class="border-l-4 border-darkgray pl-4">
+                        <h4 class="font-bold text-charcoal text-lg">Text-Only & Multi Image</h4>
+                        <p class="text-sm text-darkgray mt-1">Text posts remain the most reliable driver of deep, threaded comments. Efficacy relies almost entirely on the architecture of the first 150-character hook. Multi-image drives visible likes for brand awareness.</p>
+                    </div>
+                    <div class="border-l-4 border-red-400 pl-4">
+                        <h4 class="font-bold text-charcoal text-lg">External Link Penalty</h4>
+                        <p class="text-sm text-darkgray mt-1">Posts with outbound links experience up to a 60 percent reduction in organic reach. The old tactic of placing the link in the first comment is now also identified and penalized. Rely on native publishing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 04 (Formerly 05): Narrative -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">04 / Narrative</span>
+            <h2 class="font-heading text-4xl mb-8">Copywriting & The Pillar-Spoke Model</h2>
+            
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                The most prolific creators utilize systematic approaches to ideation. The <strong>Pillar-and-Spoke</strong> framework solves burnout: spend 75 minutes writing one deep Pillar (like a newsletter or long-form article), then deconstruct it into 6 to 8 micro Spokes (carousels, short videos, text posts) over the week. This trains the semantic AI that you are an authority in that specific niche.
+            </p>
+
+            <div class="bg-white p-8 rounded-2xl border border-bordercolor editorial-shadow mb-12">
+                <div class="w-full flex justify-center">
+                    <pre class="mermaid">
+                        mindmap
+                          root((Pillar Content))
+                            Spoke 1
+                              (Step by Step Carousel)
+                            Spoke 2
+                              (Common Mistake)
+                            Spoke 3
+                              (Personal Story)
+                            Spoke 4
+                              (Summary Video)
+                            Spoke 5
+                              (Actionable Checklist)
+                            Spoke 6
+                              (Contrarian Hook)
+                    </pre>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-charcoal text-white p-8 rounded-2xl">
+                    <h3 class="font-heading text-2xl mb-2 text-primary">A.I.D.A.</h3>
+                    <p class="text-sm text-lightgray mb-6">Baseline conversion storytelling.</p>
+                    <ul class="space-y-4 font-mono text-sm">
+                        <li class="flex flex-col"><span class="text-primary font-bold">Attention</span><span class="text-lightgray font-body mt-1">Pattern interrupting hook.</span></li>
+                        <li class="flex flex-col"><span class="text-primary font-bold">Interest</span><span class="text-lightgray font-body mt-1">Contextualize the industry problem.</span></li>
+                        <li class="flex flex-col"><span class="text-primary font-bold">Desire</span><span class="text-lightgray font-body mt-1">Paint vivid picture of solution.</span></li>
+                        <li class="flex flex-col"><span class="text-primary font-bold">Action</span><span class="text-lightgray font-body mt-1">Frictionless CTA.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-primary text-white p-8 rounded-2xl">
+                    <h3 class="font-heading text-2xl mb-2">P.A.S.</h3>
+                    <p class="text-sm text-blue-100 mb-6">Exceptional for B2B problem solving.</p>
+                    <ul class="space-y-4 font-mono text-sm">
+                        <li class="flex flex-col"><span class="text-charcoal font-bold">Problem</span><span class="text-white font-body mt-1">Hyper specific painful issue.</span></li>
+                        <li class="flex flex-col"><span class="text-charcoal font-bold">Agitate</span><span class="text-white font-body mt-1">Explore financial emotional cost.</span></li>
+                        <li class="flex flex-col"><span class="text-charcoal font-bold">Solution</span><span class="text-white font-body mt-1">Your framework as the answer.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white border-2 border-primary text-charcoal p-8 rounded-2xl">
+                    <h3 class="font-heading text-2xl mb-2 text-primary">B.A.B.</h3>
+                    <p class="text-sm text-darkgray mb-6">Ideal for case studies and branding.</p>
+                    <ul class="space-y-4 font-mono text-sm">
+                        <li class="flex flex-col"><span class="text-primary font-bold">Before</span><span class="text-darkgray font-body mt-1">Bleak reality of inefficiency.</span></li>
+                        <li class="flex flex-col"><span class="text-primary font-bold">After</span><span class="text-darkgray font-body mt-1">Utopian future where problem is resolved.</span></li>
+                        <li class="flex flex-col"><span class="text-primary font-bold">Bridge</span><span class="text-darkgray font-body mt-1">The paradigm shift product delta.</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="font-heading text-2xl mb-4">The Architecture of the Hook</h3>
+            <p class="text-md text-darkgray mb-6">The Hook dictates up to 80% of a post's success. If a hook fails to force a pause, dwell time plummets under 3 seconds. Top creators engineer hooks using specific psychological triggers.</p>
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mb-8">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700 w-1/4">Archetype</th>
+                            <th class="p-4 border-b border-gray-700 w-1/2">Structural Example</th>
+                            <th class="p-4 border-b border-gray-700 w-1/4">Ideal Application</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 font-bold text-charcoal">The Contrarian (Debate)</td>
+                            <td class="p-4 italic">"Everyone tells you to post daily. I will tell you why that is terrible advice."</td>
+                            <td class="p-4">Myth-busting, challenging norms.</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 font-bold text-charcoal">Credibility Stack</td>
+                            <td class="p-4 italic">"4M followers, 2 bestsellers. Here is the exact system that built my brand."</td>
+                            <td class="p-4">Delivering step-by-step playbooks.</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 font-bold text-charcoal">Vulnerable Journey</td>
+                            <td class="p-4 italic">"My first post flopped. My second flopped. Post 27 generated 50K."</td>
+                            <td class="p-4">Building community trust and empathy.</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 font-bold text-charcoal">The Micro-Insight</td>
+                            <td class="p-4 italic">"Stop saying 'I am passionate about' in your headline. Do this instead."</td>
+                            <td class="p-4">Tactical advice, profile teardowns.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 05 (Formerly 06): Growth Engine -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">05 / Growth Engine</span>
+            <h2 class="font-heading text-4xl mb-8">Outbound Engagement & Velocity</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Growth on LinkedIn requires capitalization on the <strong>Golden Hour</strong> (the first 90 minutes after posting where author replies count the most), creating deeply threaded <strong>Loop-Back Replies</strong>, and executing aggressive, strategic outbound commenting on larger accounts to siphon visibility.
+            </p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-8">
+                <div class="space-y-6">
+                    <div class="bg-charcoal text-white p-8 rounded-2xl">
+                        <h3 class="font-heading text-2xl mb-4 text-primary">The 5 Outbound Comment Types</h3>
+                        <p class="text-sm text-lightgray mb-4">Siphon views from top accounts by commenting within their first 2 hours. Never use generic praise. Use these instead:</p>
+                        <ul class="space-y-3 font-mono text-xs">
+                            <li><span class="text-primary font-bold">1. Add Value:</span> Expand with complementary context.</li>
+                            <li><span class="text-primary font-bold">2. Share Experience:</span> Provide a specific personal anecdote or metric.</li>
+                            <li><span class="text-primary font-bold">3. Clarifying Question:</span> Force the author to elaborate.</li>
+                            <li><span class="text-primary font-bold">4. Alt Perspective:</span> Respectfully highlight a trade-off.</li>
+                            <li><span class="text-primary font-bold">5. Share Resource:</span> Recommend a non-affiliated tool or framework.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-primary text-white p-6 rounded-2xl">
+                        <h3 class="font-heading text-xl mb-2">The Zombie Post Strategy</h3>
+                        <p class="text-sm">Return to a high-performing post 48 hours later. Add a final, thoughtful reply to a stalled comment thread. This tricks the algorithm into resurfacing the post to new audiences, spiking impressions days later due to decreased recency bias.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border border-bordercolor editorial-shadow flex flex-col justify-center">
+                    <h3 class="font-heading text-2xl mb-4">The Loop-Back Reply Thread</h3>
+                    <p class="text-sm text-darkgray mb-6">When a user comments, never reply with just 'Thanks'. Generates 5.2x amplification when threads hit 3 or more exchanges.</p>
+                    
+                    <div class="w-full flex justify-center">
+                        <pre class="mermaid">
+                            graph TD
+                                A[User Comments] --> B(Acknowledge)
+                                B --> C(Add Bonus Context)
+                                C --> D(Ask Open Ended Question)
+                                D --> E{User Replies Again}
+                                E -->|Yes| F((Algorithmic Boost))
+                                E -->|No| G(Solid thread created)
+                        </pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mt-8">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700">Target Demographic</th>
+                            <th class="p-4 border-b border-gray-700 bg-primary">Optimal Publishing Window</th>
+                            <th class="p-4 border-b border-gray-700">Rationale & Behavioral Habit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">Global B2B Baseline</td><td class="p-4 font-mono text-primary font-bold">Tue-Thu, 10:00 AM - 12:00 PM</td><td class="p-4">Peak mid-morning desk-based activity.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">India Market (IST)</td><td class="p-4 font-mono text-primary font-bold">Mon-Wed, 8:00 AM - 10:00 AM</td><td class="p-4">Catches commute and pre-standup window.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">Technology & SaaS</td><td class="p-4 font-mono text-primary font-bold">Mon-Wed, 8:00 AM - 9:00 AM</td><td class="p-4">Engineers browse prior to daily scrums and deep work.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">Finance & Banking</td><td class="p-4 font-mono text-primary font-bold">Mon-Thu, 5:00 PM - 7:00 PM</td><td class="p-4">Heavy activity occurs only after market close.</td></tr>
+                        <tr><td class="p-4 font-bold text-charcoal">Sales & BizDev</td><td class="p-4 font-mono text-primary font-bold">Tue-Thu, 7:00 AM - 9:00 AM</td><td class="p-4">Aggressive platform research before hitting the phones.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 06 (Formerly 07): Audience Capture -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">06 / Audience Capture</span>
+            <h2 class="font-heading text-4xl mb-8">Personal Branding & Newsletters</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-8">
+                <div>
+                    <h3 class="font-heading text-2xl mb-4 text-charcoal">The Branding Imperative</h3>
+                    <p class="text-md text-darkgray mb-6 leading-relaxed">
+                        In 2026, 76% of B2B buyers actively choose vendors represented by a strong, visible personal brand. Organizations are moving beyond faceless corporate pages, empowering founders and employees to build decentralized influence based on specific archetypes. Modern personal branding is about leveraging Generative Engine Optimization (GEO) to project genuine, practitioner-led expertise at scale.
+                    </p>
+                </div>
+                
+                <div class="bg-white border border-primary p-8 rounded-2xl shadow-sm">
+                    <h3 class="font-heading text-2xl mb-3 text-primary">The Newsletter Growth Loop</h3>
+                    <p class="text-sm text-darkgray mb-4">Newsletters represent the most potent transition from rented feed attention to an owned audience, boasting a 42% average open rate and 150% YoY growth.</p>
+                    <ul class="space-y-3 font-mono text-xs text-charcoal">
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary"></div> Triple Notification System (In-app, Push, Direct Email).</li>
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary"></div> LinkedIn prompts new profile followers to subscribe automatically.</li>
+                        <li class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary"></div> Vital Strategy: Systematically export subscriber data to Beehiiv/Substack.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700">Branding Archetype</th>
+                            <th class="p-4 border-b border-gray-700">Core Narrative Strategy</th>
+                            <th class="p-4 border-b border-gray-700">Best Application</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">The Pragmatic Educator</td><td class="p-4">High-efficiency, tactical advice focused on singular, expensive problems.</td><td class="p-4">Solopreneurs, consultants, SaaS founders.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">The Visionary Architect</td><td class="p-4">Focus on democratizing access and long-term product utility.</td><td class="p-4">Tech founders, product-led growth companies.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">The Vulnerable Founder</td><td class="p-4">Deep emotional connection built through radical transparency about struggles.</td><td class="p-4">E-commerce, consumer brands, coaching.</td></tr>
+                        <tr><td class="p-4 font-bold text-charcoal">The Velocity Hustler</td><td class="p-4">Massive content volume, documenting the daily grind.</td><td class="p-4">Agency owners, sales leaders, real estate.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 07 (Formerly 08): Monetization -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">07 / Monetization</span>
+            <h2 class="font-heading text-4xl mb-8">Inbound & Outbound Lead Generation</h2>
+            
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Extracting commercial value requires seamlessly integrating inbound content marketing with aggressive outbound sales workflows. This involves High-Value Lead Magnets distributed via Native Lead Gen Forms (which increase conversion 200-300%), paired with strict Account-Based Marketing (ABM) tiers using Sales Navigator.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
+                <div class="bg-white p-10 rounded-2xl border border-bordercolor editorial-shadow text-center h-full flex items-center justify-center">
+                    <div class="flex flex-col items-center w-full">
+                        <div class="w-[100%] bg-primary text-white p-6 rounded-t-2xl border-b-4 border-white">
+                            <span class="font-mono text-xs uppercase tracking-widest opacity-80 block mb-2">Top Funnel (Awareness)</span>
+                            <h3 class="font-heading text-xl mb-1">Content Ecosystem</h3>
+                        </div>
+                        <div class="w-[80%] bg-charcoal text-white p-6 border-b-4 border-white">
+                            <span class="font-mono text-xs text-primary uppercase tracking-widest block mb-2">Mid Funnel (Capture)</span>
+                            <h3 class="font-heading text-lg mb-1">Lead Magnets & Forms</h3>
+                        </div>
+                        <div class="w-[60%] bg-bg border-2 border-primary text-charcoal p-6 border-b-4 border-white">
+                            <span class="font-mono text-xs text-primary uppercase tracking-widest block mb-2">Nurture Pipeline</span>
+                            <h3 class="font-heading text-md mb-1">LinkedIn Newsletter</h3>
+                        </div>
+                        <div class="w-[40%] bg-darkgray text-white p-6 rounded-b-2xl">
+                            <span class="font-mono text-xs uppercase tracking-widest block mb-2 opacity-80">Conversion</span>
+                            <h3 class="font-heading text-sm mb-1">Sales Nav & ABM</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-charcoal text-white p-6 rounded-2xl">
+                        <h3 class="font-heading text-xl mb-4 text-primary">Sales Navigator Mastery</h3>
+                        <p class="text-sm text-lightgray mb-4">Generic mass-blasts trigger spam filters. Modern outbound relies on data hygiene and microscopic segmentation.</p>
+                        <ul class="space-y-3 font-mono text-xs">
+                            <li><span class="text-primary font-bold">Custom Personas:</span> Define exact ICPs to auto-surface leads.</li>
+                            <li><span class="text-primary font-bold">Boolean Logic:</span> Use AND/OR/NOT to refine. <br><span class="text-gray-400">Ex: (Director OR VP) AND Healthcare NOT Consultant</span></li>
+                            <li><span class="text-primary font-bold">Signal Alerts:</span> Trigger warm outreach when a prospect changes jobs or engages with content.</li>
+                            <li><span class="text-primary font-bold">Safe Automation:</span> Carefully integrate tools like Folk CRM within API limits to enrich data and build multi-channel sequences.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700">ABM Strategy Tier</th>
+                            <th class="p-4 border-b border-gray-700">Target Audience Scope</th>
+                            <th class="p-4 border-b border-gray-700">Execution Methodology</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">1:1 ABM (One-to-One)</td><td class="p-4">Single, massive enterprise accounts (e.g., Microsoft).</td><td class="p-4">Entirely bespoke content, personalized landing pages, direct executive outreach.</td></tr>
+                        <tr class="border-b border-bordercolor"><td class="p-4 font-bold text-charcoal">1:Few ABM (One-to-Few)</td><td class="p-4">Small clusters (e.g., 10 mid-size FinTechs).</td><td class="p-4">Highly customized industry reports addressing micro-niche pain points.</td></tr>
+                        <tr><td class="p-4 font-bold text-charcoal">1:Many ABM (One-to-Many)</td><td class="p-4">Broad segments (e.g., 500 SaaS startups).</td><td class="p-4">Scaled programmatic advertising, LinkedIn Matched Audiences, retargeting.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ACTION PLANNER -->
+        <section class="break-before-page">
+            <div class="w-full h-4 bg-primary mb-12 rounded-full"></div>
+            
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="font-heading text-4xl">Action Planner & Worksheet</h2>
+                <span class="px-3 py-1 bg-charcoal text-white font-mono text-xs rounded uppercase">Printable</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white p-8 rounded-2xl border-2 border-dashed border-bordercolor content-card">
+                    <h3 class="font-heading text-xl mb-2 text-primary">1. Semantic Anchor (Headline)</h3>
+                    <p class="text-sm text-darkgray mb-4">Role | Keywords | Quantifiable Value Hook (220 chars)</p>
+                    <textarea class="w-full h-24 bg-bg border border-bordercolor rounded-lg p-4 font-mono text-sm resize-none focus:outline-none focus:border-primary" placeholder="e.g., Senior Full-Stack Engineer | React, Node.js & Cloud Architecture | Scaling SaaS Platforms to $10M+ ARR..."></textarea>
+                </div>
+                <div class="bg-white p-8 rounded-2xl border-2 border-dashed border-bordercolor content-card">
+                    <h3 class="font-heading text-xl mb-2 text-primary">2. Core Pillar Content</h3>
+                    <p class="text-sm text-darkgray mb-4">Identify one deep, expensive problem your target audience faces.</p>
+                    <textarea class="w-full h-24 bg-bg border border-bordercolor rounded-lg p-4 font-body text-sm resize-none focus:outline-none focus:border-primary" placeholder="My audience struggles with... The core framework I will teach is..."></textarea>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-bordercolor content-card min-h-[300px]">
+                <h3 class="font-heading text-xl mb-4 text-charcoal">Strategic Notes & target Accounts</h3>
+                <div class="w-full h-full border-t border-b border-lightgray bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjI4Ij48bGluZSB4MT0iMCIgeTE9IjI4IiB4Mj0iMTAwJSIgeTI9IjI4IiBzdHJva2U9IiNFMUU1RUIiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==')] min-h-[250px]">
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 08 (Formerly 09): Profile Optimization Checklist -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">08 / Semantic Baseline</span>
+            <h2 class="font-heading text-4xl mb-8">Profile Optimization Checklist</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Before generating content, your profile must act as a high-converting landing page. If a reader clicks your name after reading a strong post and finds an unoptimized profile, the algorithmic acquisition funnel breaks instantly.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-8 rounded-2xl border border-bordercolor editorial-shadow">
+                    <h3 class="font-heading text-2xl mb-4 text-primary">Profile Photo</h3>
+                    <ul class="space-y-3 font-mono text-sm text-darkgray">
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Framing:</strong> Face occupies 60–70% of the circle.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Lighting:</strong> Natural, even front-lighting. No harsh shadows.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Eye Contact:</strong> Looking directly into the lens.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Background:</strong> Solid or subtly blurred (uncluttered).</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Expression:</strong> Authentic, approachable smile.</li>
+                        <li class="flex gap-2 text-red-500"><strong class="text-red-600 min-w-[120px]">Avoid:</strong> Sunglasses, group crops, low-res selfies.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border border-bordercolor editorial-shadow">
+                    <h3 class="font-heading text-2xl mb-4 text-primary">The Banner</h3>
+                    <ul class="space-y-3 font-mono text-sm text-darkgray">
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Purpose:</strong> Digital billboard acting as visual hook.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Hierarchy:</strong> Value proposition reads left-to-right.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Headline:</strong> One clear sentence solving a problem.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Social Proof:</strong> Logos of clients, publications, or stats.</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">Spacing:</strong> Keep bottom-left clear (hidden by profile picture).</li>
+                        <li class="flex gap-2"><strong class="text-charcoal min-w-[120px]">CTA:</strong> Arrow pointing to the custom link button.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vg-framework mb-8">
+                <div class="vg-framework-card">
+                    <div class="top vg-blue">The Headline</div>
+                    <div class="body">
+                        <strong>The Search Engine Hook</strong>
+                        <p class="vg-mini mb-2">Dictates who finds you in search.</p>
+                        <div class="bg-bg p-2 rounded text-xs font-mono border-l-2 border-primary mb-2">
+                            [Role] helping [Audience] achieve [Result] | [Keywords]
+                        </div>
+                        <p class="text-xs text-red-600 font-bold">Mistake: Using only a generic job title.</p>
+                    </div>
+                </div>
+                <div class="vg-framework-card">
+                    <div class="top vg-green">About Section</div>
+                    <div class="body">
+                        <strong>Storytelling Framework</strong>
+                        <p class="vg-mini mb-2">Write in 1st person. Use short paragraphs.</p>
+                        <ul class="text-xs space-y-1 list-disc pl-4 text-darkgray">
+                            <li>Hook (Your core belief)</li>
+                            <li>The Problem (What you see wrong)</li>
+                            <li>The Solution (How you fix it)</li>
+                            <li>Keyword placement (Natural phrasing)</li>
+                            <li>CTA (Email me at...)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="vg-framework-card">
+                    <div class="top vg-amber">Featured Section</div>
+                    <div class="body">
+                        <strong>Your Digital Storefront</strong>
+                        <p class="vg-mini mb-2">Pin 2-3 high-conversion items.</p>
+                        <ul class="text-xs space-y-1 list-disc pl-4 text-darkgray">
+                            <li>Lead Magnets / Ebooks</li>
+                            <li>Top performing case studies</li>
+                            <li>Newsletter subscription link</li>
+                            <li>Portfolio or Website</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="vg-framework-card">
+                    <div class="top vg-violet">Experience & Skills</div>
+                    <div class="body">
+                        <strong>Achievements > Responsibilities</strong>
+                        <p class="vg-mini mb-2">Don't paste a resume. Highlight impact.</p>
+                        <ul class="text-xs space-y-1 list-disc pl-4 text-darkgray">
+                            <li>Use metrics and KPIs ($/%)</li>
+                            <li>Pin top 3 most relevant skills</li>
+                            <li>Turn on Creator Mode to show topics</li>
+                            <li>Customize your URL to just your name</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-bg p-6 rounded-2xl border border-bordercolor mb-8 flex items-center justify-between">
+                <div>
+                    <h3 class="font-heading text-lg text-charcoal mb-1">Recommendations & Creator Mode</h3>
+                    <p class="text-sm text-darkgray"><strong>Ask:</strong> "Could you write a brief recommendation focusing on [Specific Project]?"<br><strong>Creator Mode:</strong> Use it to unlock the "Follow" button, Newsletters, and Audio events.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border-2 border-primary no-print relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-primary text-white text-xs font-mono px-3 py-1 uppercase rounded-bl-lg">Printable</div>
+                <h3 class="font-heading text-2xl mb-4">Complete Profile Readiness</h3>
+                <div class="vg-checklist">
+                    <div class="vg-check">Hi-res headshot (60% face, smiling)</div>
+                    <div class="vg-check">Banner with clear value prop & social proof</div>
+                    <div class="vg-check">Headline uses the Keyword + Value formula</div>
+                    <div class="vg-check">About section formatted with short paragraphs</div>
+                    <div class="vg-check">Featured section has at least 1 Lead Magnet</div>
+                    <div class="vg-check">Experience bullets focus on measured achievements</div>
+                    <div class="vg-check">Top 3 skills pinned and endorsed</div>
+                    <div class="vg-check">At least 3 written recommendations received</div>
+                    <div class="vg-check">Creator mode activated (if content is priority)</div>
+                    <div class="vg-check">Custom LinkedIn URL claimed (no random numbers)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 09 (Formerly 10): Carousel Creation Guide -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">09 / Format Mastery</span>
+            <h2 class="font-heading text-4xl mb-8">Carousel Creation Guide</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Carousels (PDF documents) dominate the algorithm because they naturally manufacture <strong>dwell time</strong> and trigger <strong>swipe behavior</strong>. A saved carousel acts as a permanent reference, signaling extreme value to the Interest Graph.
+            </p>
+
+            <div class="vg-infographic mb-12">
+                <div class="vg-big-stat">
+                    <div class="large">7%</div>
+                    <h3 class="font-bold text-2xl">Avg. Engagement Rate for Carousels</h3>
+                    <p>Readers manually swiping through slides forces the algorithm to register deep, active consumption rather than passive scrolling.</p>
+                </div>
+                <div class="vg-stat-list">
+                    <div class="vg-stat"><div class="vg-icon vg-blue">⏱</div><div><strong>Dwell Time</strong><p class="vg-mini">Each swipe adds seconds to total read time.</p></div></div>
+                    <div class="vg-stat"><div class="vg-icon vg-green">💾</div><div><strong>Saves</strong><p class="vg-mini">Highest save rate of any content format.</p></div></div>
+                    <div class="vg-stat"><div class="vg-icon vg-amber">🔄</div><div><strong>Shares</strong><p class="vg-mini">Easily circulated internally by B2B teams.</p></div></div>
+                </div>
+            </div>
+
+            <h3 class="font-heading text-2xl mb-6">The High-Converting Carousel Structure</h3>
+            <div class="vg-timeline mb-12">
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">1. Cover</h3><p class="vg-mini">Big typography. High contrast. Curiosity hook.</p></div>
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">2. Problem</h3><p class="vg-mini">Agitate the pain point they currently face.</p></div>
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">3. Why</h3><p class="vg-mini">Explain why old methods fail (paradigm shift).</p></div>
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">4. Framework</h3><p class="vg-mini">Introduce your step-by-step solution.</p></div>
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">5. Summary</h3><p class="vg-mini">One slide recapping the entire framework.</p></div>
+                <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">6. CTA</h3><p class="vg-mini">Direct them to profile, comments, or magnet.</p></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-charcoal text-white p-6 rounded-2xl shadow-lg border-t-4 border-primary">
+                    <h3 class="font-heading text-xl mb-4">The Cover Slide</h3>
+                    <ul class="space-y-2 text-sm text-lightgray">
+                        <li><strong>Title Formula:</strong> "How to [Result] without [Pain]."</li>
+                        <li><strong>Typography:</strong> Massive, bold sans-serif.</li>
+                        <li><strong>Contrast:</strong> Dark background, light text (or vice versa).</li>
+                        <li><strong>Curiosity:</strong> Add a subtitle like "A 5-step breakdown."</li>
+                        <li><strong>Whitespace:</strong> Keep 30% of the slide totally empty.</li>
+                    </ul>
+                </div>
+                <div class="bg-white text-charcoal p-6 rounded-2xl shadow-lg border border-bordercolor">
+                    <h3 class="font-heading text-xl mb-4 text-primary">The Body Slides</h3>
+                    <ul class="space-y-2 text-sm text-darkgray">
+                        <li><strong>Rule:</strong> ONE idea per slide. Never crowd it.</li>
+                        <li><strong>Hierarchy:</strong> Big Header > Small body > Graphic.</li>
+                        <li><strong>Visuals:</strong> Use icons, charts, and screenshots.</li>
+                        <li><strong>Consistency:</strong> Keep margins and fonts identical.</li>
+                        <li><strong>Readability:</strong> Min 40pt font for main text on mobile.</li>
+                    </ul>
+                </div>
+                <div class="bg-primary text-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="font-heading text-xl mb-4">The Final Slide (CTA)</h3>
+                    <ul class="space-y-2 text-sm text-blue-100">
+                        <li><strong>Option A (Growth):</strong> "Follow for daily tips."</li>
+                        <li><strong>Option B (Leads):</strong> "Link in featured to download."</li>
+                        <li><strong>Option C (Engage):</strong> "What would you add?"</li>
+                        <li><strong>Design:</strong> Include your headshot for trust.</li>
+                        <li><strong>Action:</strong> Point arrows toward the save/follow buttons.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="vg-grid-2 mb-12">
+                <div class="bg-white p-6 rounded-2xl border border-bordercolor">
+                    <h3 class="font-heading text-xl mb-4 text-charcoal">Design Rules (Mobile-First)</h3>
+                    <ul class="space-y-2 text-sm text-darkgray list-disc pl-5">
+                        <li><strong>Format:</strong> 1080x1350px (Portrait) takes up more screen space.</li>
+                        <li><strong>Margins:</strong> Keep a 100px safe zone around the edge.</li>
+                        <li><strong>Alignment:</strong> Left-align text for easy reading.</li>
+                        <li><strong>Colors:</strong> Limit to 2 primary brand colors + 1 accent.</li>
+                        <li><strong>Page Numbers:</strong> Add "1 / 10" at the bottom to encourage swiping.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-bordercolor">
+                    <h3 class="font-heading text-xl mb-4 text-charcoal">Common Visual Layouts</h3>
+                    <div class="flex flex-wrap gap-2 text-xs font-mono font-bold">
+                        <span class="bg-blue-100 text-primary px-3 py-1 rounded">Checklist</span>
+                        <span class="bg-green-100 text-green px-3 py-1 rounded">Timeline</span>
+                        <span class="bg-gray-100 text-charcoal px-3 py-1 rounded">Comparison (vs)</span>
+                        <span class="bg-amber-100 text-amber px-3 py-1 rounded">Process Map</span>
+                        <span class="bg-purple-100 text-violet px-3 py-1 rounded">Framework Grid</span>
+                        <span class="bg-red-100 text-red px-3 py-1 rounded">Pyramid</span>
+                        <span class="bg-blue-100 text-primary px-3 py-1 rounded">Funnel</span>
+                        <span class="bg-gray-100 text-charcoal px-3 py-1 rounded">Roadmap</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-heading text-2xl mb-6">Carousel Creation Workflow</h3>
+            <div class="vg-process-map mb-8">
+                <div class="vg-lane">
+                    <h3>1. Prep</h3>
+                    <div class="vg-box"><strong>Idea</strong><p class="vg-mini">Identify a high-value, step-by-step process.</p></div>
+                    <div class="vg-box"><strong>Outline</strong><p class="vg-mini">Write slide headers in a text doc first.</p></div>
+                </div>
+                <div class="vg-lane">
+                    <h3>2. Execute</h3>
+                    <div class="vg-box"><strong>Write</strong><p class="vg-mini">Flesh out the minimal text needed per slide.</p></div>
+                    <div class="vg-box"><strong>Design</strong><p class="vg-mini">Drop text into Figma/Canva templates. Add icons.</p></div>
+                </div>
+                <div class="vg-lane">
+                    <h3>3. Deploy</h3>
+                    <div class="vg-box"><strong>Review</strong><p class="vg-mini">Check mobile contrast and spelling.</p></div>
+                    <div class="vg-box"><strong>Publish</strong><p class="vg-mini">Export as PDF and upload as Document on LinkedIn.</p></div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl border-2 border-primary shadow-sm">
+                <h3 class="font-heading text-xl mb-4 text-primary">Carousel Pre-Flight Checklist</h3>
+                <div class="vg-checklist">
+                    <div class="vg-check">Title makes a specific promise</div>
+                    <div class="vg-check">Text size is readable on a phone screen</div>
+                    <div class="vg-check">Only one main concept per slide</div>
+                    <div class="vg-check">Visual elements (charts/icons) support the text</div>
+                    <div class="vg-check">Slide numbers are visible (e.g., 3/8)</div>
+                    <div class="vg-check">Final slide contains a single, clear CTA</div>
+                    <div class="vg-check">Exported exclusively as a PDF</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 10 (Formerly 11): Personal Brand Voice Guide -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">10 / Identity</span>
+            <h2 class="font-heading text-4xl mb-8">Personal Brand Voice Guide</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Your tone dictates your tribe. In an era where AI can generate infinite amounts of grammatically perfect, soulless content, the only differentiator is a distinct, deeply human brand voice.
+            </p>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mb-12">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700">Brand Personality</th>
+                            <th class="p-4 border-b border-gray-700">Core Vibe</th>
+                            <th class="p-4 border-b border-gray-700">When It Works Best</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">The Educator</td><td class="p-4">Academic, clear, highly structured, data-driven.</td><td class="p-4">When selling complex B2B services or SaaS tools.</td></tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">The Founder</td><td class="p-4">Visionary, passionate, slightly vulnerable.</td><td class="p-4">Building a company in public; recruiting talent.</td></tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">The Consultant</td><td class="p-4">Analytical, professional, diagnostic, authoritative.</td><td class="p-4">High-ticket service providers and agencies.</td></tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">The Executive</td><td class="p-4">Measured, strategic, leadership-focused, macro.</td><td class="p-4">Enterprise leaders, board members, legacy brands.</td></tr>
+                        <tr class="border-b border-bordercolor hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">The Creator / Coach</td><td class="p-4">Energetic, inspirational, conversational, relatable.</td><td class="p-4">Community building, digital products, personal growth.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="font-heading text-2xl mb-6">Core Voice Principles</h3>
+            <div class="vg-grid-3 mb-12">
+                <div class="bg-white p-6 rounded-2xl border border-bordercolor shadow-sm">
+                    <h4 class="font-bold text-lg text-primary mb-2">Simplicity</h4>
+                    <p class="text-sm text-darkgray">Write at a 6th-grade reading level. Complex words hide weak ideas. Simple words highlight strong ones.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-bordercolor shadow-sm">
+                    <h4 class="font-bold text-lg text-primary mb-2">Confidence</h4>
+                    <p class="text-sm text-darkgray">Remove "I think" and "Maybe." State your thesis as fact, then back it up with irrefutable proof.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-bordercolor shadow-sm">
+                    <h4 class="font-bold text-lg text-primary mb-2">Empathy</h4>
+                    <p class="text-sm text-darkgray">Focus on 'You' more than 'I'. Understand their exact pain points and speak directly to their frustrations.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-bg p-8 rounded-2xl border border-bordercolor">
+                    <h3 class="font-heading text-xl mb-4 text-charcoal">Writing Style Mechanics</h3>
+                    <ul class="space-y-4 font-mono text-sm text-darkgray">
+                        <li><strong>Sentence Length:</strong> Vary it. Short sentences punch. Long sentences flow and provide deep context. Create rhythm.</li>
+                        <li><strong>Paragraph Length:</strong> 1 to 3 sentences maximum. Whitespace is a structural design element on mobile screens.</li>
+                        <li><strong>Storytelling:</strong> Show, don't tell. Instead of saying "I work hard," describe the 2 AM coffee and the glowing monitor.</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-charcoal p-8 rounded-2xl text-white">
+                    <h3 class="font-heading text-xl mb-4 text-primary">Tone Application</h3>
+                    <div class="space-y-3 text-sm text-lightgray">
+                        <p><strong class="text-white">Professional:</strong> Use for case studies and industry news.</p>
+                        <p><strong class="text-white">Friendly:</strong> Use for community replies and networking.</p>
+                        <p><strong class="text-white">Bold:</strong> Use for contrarian takes and myth-busting.</p>
+                        <p><strong class="text-white">Conversational:</strong> Use for behind-the-scenes stories.</p>
+                        <p><strong class="text-white">Inspirational:</strong> Use sparingly for milestone achievements.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vg-grid-2 mb-12">
+                <div class="bg-white p-6 rounded-2xl border-l-4 border-green shadow-sm">
+                    <h3 class="font-heading text-xl mb-4 text-green">Words To Use</h3>
+                    <p class="text-sm text-darkgray mb-4">Concrete, action-oriented, and specific language.</p>
+                    <div class="flex flex-wrap gap-2 font-mono text-xs font-bold text-charcoal">
+                        <span class="bg-gray-100 px-2 py-1 rounded">Built</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Generated</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Tested</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Failed</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Because</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Exactly</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">Framework</span>
+                        <span class="bg-gray-100 px-2 py-1 rounded">System</span>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-l-4 border-red shadow-sm">
+                    <h3 class="font-heading text-xl mb-4 text-red">Words To Avoid</h3>
+                    <p class="text-sm text-darkgray mb-4">Corporate jargon, AI buzzwords, and fluff.</p>
+                    <div class="flex flex-wrap gap-2 font-mono text-xs font-bold text-red-700">
+                        <span class="bg-red-50 px-2 py-1 rounded">Delve</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Navigate</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Synergy</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Testament</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Unleash</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Thrilled to announce</span>
+                        <span class="bg-red-50 px-2 py-1 rounded">Tapestry</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-heading text-2xl mb-6">Copywriting: Before vs After</h3>
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mb-8">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-charcoal text-white font-mono text-sm tracking-wider uppercase">
+                            <th class="p-4 border-b border-gray-700 w-1/2">Weak / Generic Copy (Before)</th>
+                            <th class="p-4 border-b border-gray-700 w-1/2 bg-primary">Strong / Specific Copy (After)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-darkgray">
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 italic">"Communication is very important for a successful team. You need to talk to each other to win."</td>
+                            <td class="p-4 font-medium text-charcoal">"Most remote teams don't fail due to bad code. They fail because Slack replaced actual conversation. Here is our 3-step communication rule."</td>
+                        </tr>
+                        <tr class="border-b border-bordercolor">
+                            <td class="p-4 italic">"I am so honored and thrilled to announce that I have started a new position as a manager."</td>
+                            <td class="p-4 font-medium text-charcoal">"I spent 4 years as an individual contributor. Today, I'm stepping into my first management role. Here are the 3 things I'm most terrified of."</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 italic">"If you want to grow your sales, you need to work hard and find leads."</td>
+                            <td class="p-4 font-medium text-charcoal">"Cold calling is dead. We replaced our outbound sequence with this simple LinkedIn framework and booked 14 demos last week."</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-bg p-8 rounded-2xl border border-bordercolor">
+                <h3 class="font-heading text-xl mb-4 text-charcoal">Voice & Tone Checklist</h3>
+                <div class="vg-checklist">
+                    <div class="vg-check">Sounds like how I actually speak</div>
+                    <div class="vg-check">Removes unnecessary adverbs (very, really, deeply)</div>
+                    <div class="vg-check">Uses active voice, not passive</div>
+                    <div class="vg-check">Zero generic AI-generated transition phrases</div>
+                    <div class="vg-check">Maintains a consistent level of professionalism</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 11 (Formerly 12): Content Audit Checklist -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">11 / Quality Assurance</span>
+            <h2 class="font-heading text-4xl mb-8">Content Audit Checklist</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Publishing substandard content harms your algorithmic standing. Run every piece of content through this rigorous pre-publishing quality control system to ensure it meets the 360Brew standard.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-blue border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-primary">1. The Hook</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>Forces curiosity or pattern interrupt.</li>
+                        <li>Highly specific to the target audience.</li>
+                        <li>Relevant to an immediate pain point.</li>
+                        <li>Free of clickbait or false promises.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-cyan border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-cyan">2. Readability</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>Paragraphs are 3 lines or less.</li>
+                        <li>Ample whitespace between concepts.</li>
+                        <li>Proper formatting (bullet points, bold text).</li>
+                        <li>Scannable and visually appealing on mobile.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-green border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-green">3. Value Density</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>The insight is genuinely useful.</li>
+                        <li>Provides actionable steps, not just theory.</li>
+                        <li>Solves a specific micro-problem.</li>
+                        <li>Original perspective (not echoing consensus).</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-amber border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-amber">4. Credibility</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>Provides concrete proof (data, results).</li>
+                        <li>Uses real-world examples or client stories.</li>
+                        <li>Incorporates specific numbers/metrics.</li>
+                        <li>Includes screenshots or visual evidence if applicable.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-red border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-red">5. Engagement</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>Ends with a clear, frictionless CTA.</li>
+                        <li>Asks a specific question to spark comments.</li>
+                        <li>Leaves room for healthy debate or discussion.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border-t-4 border-violet border-l border-r border-b border-bordercolor shadow-sm">
+                    <h3 class="font-heading text-xl mb-3 text-violet">6. Branding</h3>
+                    <ul class="text-sm text-darkgray space-y-2 list-disc pl-4">
+                        <li>Aligns with your primary audience avatar.</li>
+                        <li>Reinforces your market positioning.</li>
+                        <li>Naturally includes industry keywords.</li>
+                        <li>Consistent with your visual and tonal identity.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="bg-charcoal text-white p-8 rounded-2xl">
+                    <h3 class="font-heading text-2xl mb-6 text-primary">Content Scoring System</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">Hook</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-primary rounded-full w-[20%]"></div></div>
+                            <span class="font-bold text-lg text-primary">20</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">Value</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-green rounded-full w-[25%]"></div></div>
+                            <span class="font-bold text-lg text-green">25</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">Readability</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-cyan rounded-full w-[15%]"></div></div>
+                            <span class="font-bold text-lg text-cyan">15</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">Credibility</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-amber rounded-full w-[20%]"></div></div>
+                            <span class="font-bold text-lg text-amber">20</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">CTA</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-red rounded-full w-[10%]"></div></div>
+                            <span class="font-bold text-lg text-red">10</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-sm uppercase tracking-wide">Branding</span>
+                            <div class="flex-grow mx-4 h-2 bg-gray-700 rounded-full"><div class="h-2 bg-violet rounded-full w-[10%]"></div></div>
+                            <span class="font-bold text-lg text-violet">10</span>
+                        </div>
+                        <div class="pt-4 mt-2 border-t border-gray-700 flex justify-between items-center">
+                            <span class="font-heading text-xl">Total Score</span>
+                            <span class="font-heading text-3xl text-white">/ 100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border-2 border-primary">
+                    <h3 class="font-heading text-xl mb-4 text-charcoal">Final Publishing Checklist</h3>
+                    <div class="flex flex-col gap-3 font-mono text-sm">
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Does the first sentence force them to click "see more"?</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Did I remove all unnecessary adverbs and fluff?</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Is there a clear, single takeaway for the reader?</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Are all images/carousels high resolution?</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Is the call-to-action easy to execute?</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-bg rounded">
+                            <input type="checkbox" class="w-5 h-5 accent-primary rounded">
+                            <span>Have I removed all external links from the main text?</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 12 (Formerly 13): Troubleshooting -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">12 / Troubleshooting</span>
+            <h2 class="font-heading text-4xl mb-8">Common Content Mistakes</h2>
+            <p class="text-lg text-darkgray mb-8 max-w-4xl leading-relaxed">
+                Diagnose performance issues instantly. If your reach is suppressed or your conversion is low, you are likely committing one of these algorithmic or psychological errors.
+            </p>
+
+            <div class="bg-white rounded-2xl border border-bordercolor overflow-hidden editorial-shadow mb-12">
+                <div class="max-h-[600px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-charcoal text-white shadow z-10">
+                            <tr class="font-mono text-xs tracking-wider uppercase">
+                                <th class="p-4 border-b border-gray-700 w-1/5">The Mistake</th>
+                                <th class="p-4 border-b border-gray-700 w-2/5 border-l border-gray-700">Why It Hurts Performance</th>
+                                <th class="p-4 border-b border-gray-700 w-2/5 border-l border-gray-700 bg-primary">How To Fix It</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-darkgray divide-y divide-bordercolor relative z-0">
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">1. Weak hooks</td><td class="p-4 border-l border-bordercolor">Lowers dwell time instantly. Users scroll past before the algorithm registers engagement.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use pattern interrupts, contrarian takes, or highly specific numbers in line 1.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">2. Long paragraphs</td><td class="p-4 border-l border-bordercolor">Creates a "wall of text" that is physically exhausting to read on mobile devices.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Break text into 1-3 sentence blocks. Use whitespace liberally.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">3. Too many ideas</td><td class="p-4 border-l border-bordercolor">Confuses the semantic AI routing and dilutes the reader's takeaway.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Stick to the Rule of One: One post, one idea, one audience, one action.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">4. No CTA</td><td class="p-4 border-l border-bordercolor">Creates a dead end. Readers consume and leave without interacting.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Always tell them what to do next (comment, save, follow, or click profile).</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">5. Generic advice</td><td class="p-4 border-l border-bordercolor">Blends in with millions of other posts. Shows zero unique authority.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Add extreme specificity. "Work hard" becomes "Our Q3 cold email sprint".</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">6. Writing like AI</td><td class="p-4 border-l border-bordercolor">Users instantly distrust corporate jargon and perfect, soulless structure.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Remove "delve," "unlock," and "synergy." Write exactly how you speak.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">7. Overusing emojis</td><td class="p-4 border-l border-bordercolor">Looks spammy and unprofessional. Distracts from the core message.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Limit to 1-3 emojis per post, used only as bullet points or visual anchors.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">8. Incorrect hashtags</td><td class="p-4 border-l border-bordercolor">Keyword stuffing confuses the categorization algorithm.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use 3-5 highly relevant, niche-specific hashtags at the very bottom.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">9. Posting external links</td><td class="p-4 border-l border-bordercolor">Triggers massive reach penalties as LinkedIn wants to keep users on-platform.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Direct users to a link in your "Featured" section or send via DM.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">10. Hard selling</td><td class="p-4 border-l border-bordercolor">Burns trust. People log on to learn and network, not to be pitched.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Sell the problem, give away the solution. Let expertise drive inbound leads.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">11. No storytelling</td><td class="p-4 border-l border-bordercolor">Information without narrative is easily forgotten. Fails to build empathy.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use the Moment -> Tension -> Resolution framework. Make it human.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">12. No proof</td><td class="p-4 border-l border-bordercolor">Claims without evidence are dismissed as amateur theory.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Back every claim with data, a screenshot, a quote, or a case study.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">13. No audience focus</td><td class="p-4 border-l border-bordercolor">"I" syndrome. When you only talk about yourself, the reader tunes out.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Flip the perspective. Explain what your experience means for *them*.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">14. No niche</td><td class="p-4 border-l border-bordercolor">You become a generalist. The AI cannot route your content to high-intent buyers.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Pick 2-3 content pillars and rarely deviate. Consistency builds authority.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">15. Posting inconsistently</td><td class="p-4 border-l border-bordercolor">Algorithm downgrades your profile priority. You lose top-of-mind awareness.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Commit to a realistic schedule (e.g., 3x a week) and automate ideation.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">16. Ignoring comments</td><td class="p-4 border-l border-bordercolor">Kills community momentum and fails to trigger algorithmic amplification.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Reply to every meaningful comment. Ask follow-up questions to loop them back.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">17. Not replying quickly</td><td class="p-4 border-l border-bordercolor">Misses the "Golden Hour" boost which dictates initial distribution velocity.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Block out 30-60 minutes immediately after publishing to engage.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">18. Poor formatting</td><td class="p-4 border-l border-bordercolor">Creates cognitive friction. If it looks messy, they won't read it.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use consistent lists, clean spacing, and capitalized headlines.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">19. Walls of text</td><td class="p-4 border-l border-bordercolor">(See Mistake #2). Immediate visual bounce.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use carriage returns aggressively. Max 3 lines per block.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">20. Bad carousel design</td><td class="p-4 border-l border-bordercolor">Tiny fonts and cluttered slides make swiping a chore.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">One idea per slide. Massive fonts. Extreme contrast. Clean margins.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">21. Low-quality images</td><td class="p-4 border-l border-bordercolor">Screams unprofessionalism. Negatively impacts brand perception.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Use high-res native uploads. Avoid pixelated stock photos.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">22. Clickbait</td><td class="p-4 border-l border-bordercolor">Generates high initial clicks but furious bounce rates, tanking your trust score.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Make a bold promise in the hook, but *always* deliver the payoff.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">23. Fake authenticity</td><td class="p-4 border-l border-bordercolor">Crying CEO selfies and manufactured struggles are heavily ridiculed.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Share real operational failures and what you learned. Stay grounded.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">24. Copying creators</td><td class="p-4 border-l border-bordercolor">The algorithm detects duplicate/highly similar text. You become a commodity.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Steal the structural framework, but inject your own unique lived experience.</td></tr>
+                            <tr class="hover:bg-bg transition-colors"><td class="p-4 font-bold text-charcoal">25. Not measuring results</td><td class="p-4 border-l border-bordercolor">You repeat what fails and abandon what works out of ignorance.</td><td class="p-4 border-l border-bordercolor text-primary font-medium">Review analytics weekly. Double down on formats that generate profile visits.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 13: Closing -->
+        <section>
+            <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-4 block">13 / The Path Forward</span>
+            <h2 class="font-heading text-4xl mb-8">Closing Thoughts</h2>
+            
+            <div class="bg-primary text-white p-10 rounded-2xl border-4 border-charcoal editorial-shadow relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-[50px] -mr-10 -mt-10 pointer-events-none"></div>
+                
+                <h3 class="font-heading text-3xl mb-4 relative z-10">Consistency Beats Intensity</h3>
+                <p class="text-lg text-white/90 max-w-3xl leading-relaxed mb-6 relative z-10">
+                    The LinkedIn algorithm does not reward random bursts of viral ambition. It rewards deep semantic consistency, genuine human empathy, and relentless value delivery. You now possess the Catalyst Framework—the exact blueprint and troubleshooting systems required to completely dominate this ecosystem and ignite your personal brand. 
+                </p>
+                <p class="text-lg text-white/90 max-w-3xl leading-relaxed mb-8 relative z-10">
+                    Your immediate next step is simple: Pick one specific target audience, optimize your profile to solve their most expensive problem, and publish your first pillar piece. 
+                </p>
+                
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center font-bold text-xl">✓</div>
+                    <span class="font-mono text-sm uppercase tracking-widest font-bold">The Blueprint is Yours. Execute.</span>
+                </div>
+            </div>
+
+<style>
+  /* Import required fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+  /* Container styling */
+  .cta-box {
+    background-color: #1E1E1E; /* Charcoal */
+    border: 2px solid #4F78C9; /* Primary Blue */
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-top: 48px;
+    margin-bottom: 48px;
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+  }
+
+  /* Small uppercase kicker text */
+  .cta-kicker {
+    color: #4F78C9;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* Main heading */
+  .cta-title {
+    color: #FFFFFF;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 36px;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
+  }
+
+  /* Paragraph description */
+  .cta-desc {
+    color: #E5E7EB; /* Light Gray */
+    font-size: 18px;
+    max-width: 42rem;
+    margin: 0 auto 32px auto;
+    line-height: 1.6;
+  }
+
+  /* Button container layout */
+  .cta-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Desktop layout for buttons */
+  @media (min-width: 640px) {
+    .cta-buttons {
+      flex-direction: row;
+    }
+  }
+
+  /* Base button styling */
+  .cta-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* Solid Primary Button (Book a Call) */
+  .cta-btn-primary {
+    background-color: #4F78C9;
+    color: #FFFFFF;
+    border: 2px solid #4F78C9;
+  }
+  .cta-btn-primary:hover {
+    background-color: #3b5cb8;
+    border-color: #3b5cb8;
+  }
+
+  /* Outline Primary Button (LinkedIn) */
+  .cta-btn-outline {
+    background-color: transparent;
+    color: #FFFFFF;
+    border: 2px solid #4F78C9;
+  }
+  .cta-btn-outline:hover {
+    background-color: #4F78C9;
+  }
+
+  /* Outline Gray Button (Email) */
+  .cta-btn-ghost {
+    background-color: transparent;
+    color: #FFFFFF;
+    border: 2px solid #D1D5DB;
+  }
+  .cta-btn-ghost:hover {
+    border-color: #FFFFFF;
+  }
+</style>
+
+<div class="cta-box no-print">
+  <div class="cta-kicker">Let's Work Together</div>
+  <h2 class="cta-title">Book a Strategy Call with Adil Ahmad</h2>
+  <p class="cta-desc">
+      Ready to turn this blueprint into an actionable strategy for your brand? Let's connect and scale your presence.
+  </p>
+  <div class="cta-buttons">
+      <a href="https://topmate.io/theadilahmad/878470" target="_blank" class="cta-btn cta-btn-primary">
+          Book a Call
+      </a>
+      <a href="https://www.linkedin.com/in/theadilahmad/" target="_blank" class="cta-btn cta-btn-outline">
+          Connect on LinkedIn
+      </a>
+      <a href="mailto:adil29ahmad@gmail.com" class="cta-btn cta-btn-ghost">
+          adil29ahmad@gmail.com
+      </a>
+  </div>
+</div>
+
+        </section>
+
+    </main>
+
+    <!-- VISUAL GUIDE SECTION -->
+    <div class="w-full bg-charcoal text-white py-12 mt-12 border-t-8 border-primary no-print">
+        <div class="vg-wrap text-center">
+            <h2 class="font-heading text-4xl mb-4 text-white">Visual Quick Reference Appendix</h2>
+            <p class="text-lightgray max-w-2xl mx-auto">A visual map for creating better LinkedIn content, growing an audience, building trust, and turning attention into qualified leads.</p>
+            <div class="vg-hero-grid text-left">
+                <div class="vg-hero-chip"><strong>Content</strong><br />Teach, prove, and tell better stories.</div>
+                <div class="vg-hero-chip"><strong>Growth</strong><br />Be known for a clear niche.</div>
+                <div class="vg-hero-chip"><strong>Leads</strong><br />Create trust before selling.</div>
+                <div class="vg-hero-chip"><strong>System</strong><br />Repeat what works every week.</div>
+            </div>
+        </div>
+    </div>
+
+    <main class="vg-wrap pb-16 no-print text-[#1E1E1E]">
+        <div class="vg-section">
+          <div class="vg-kicker">Flowchart</div>
+          <h2 class="font-heading text-3xl mb-6">The LinkedIn Growth Loop</h2>
+          <div class="vg-flow">
+            <div class="vg-flow-step">
+              <span class="vg-num">1</span>
+              <h3 class="font-bold text-lg mb-2">Pick Audience</h3>
+              <p class="vg-mini">Know exactly who you want to attract.</p>
+            </div>
+            <div class="vg-flow-step">
+              <span class="vg-num">2</span>
+              <h3 class="font-bold text-lg mb-2">Create Useful Posts</h3>
+              <p class="vg-mini">Share frameworks, lessons, proof, and stories.</p>
+            </div>
+            <div class="vg-flow-step">
+              <span class="vg-num">3</span>
+              <h3 class="font-bold text-lg mb-2">Start Conversations</h3>
+              <p class="vg-mini">Reply, comment, and ask thoughtful questions.</p>
+            </div>
+            <div class="vg-flow-step">
+              <span class="vg-num">4</span>
+              <h3 class="font-bold text-lg mb-2">Capture Interest</h3>
+              <p class="vg-mini">Use soft CTAs, resources, and profile visits.</p>
+            </div>
+            <div class="vg-flow-step">
+              <span class="vg-num">5</span>
+              <h3 class="font-bold text-lg mb-2">Convert Leads</h3>
+              <p class="vg-mini">Move qualified people to a call or next step.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Mind Map</div>
+          <h2 class="font-heading text-3xl mb-6">What To Post On LinkedIn</h2>
+          <div class="vg-mindmap">
+            <div class="vg-mind-center">LinkedIn<br>Content<br>Pillars</div>
+            <div class="vg-mind-node left vg-n1"><strong class="block mb-1 text-lg">Expertise</strong><p class="vg-mini">How-tos, frameworks, checklists, analysis.</p></div>
+            <div class="vg-mind-node right vg-n2"><strong class="block mb-1 text-lg">Proof</strong><p class="vg-mini">Case studies, numbers, results, before/after.</p></div>
+            <div class="vg-mind-node left vg-n3"><strong class="block mb-1 text-lg">Stories</strong><p class="vg-mini">Mistakes, lessons, decisions, turning points.</p></div>
+            <div class="vg-mind-node right vg-n4"><strong class="block mb-1 text-lg">Opinions</strong><p class="vg-mini">Trends, myths, contrarian takes, predictions.</p></div>
+            <div class="vg-mind-node left vg-n5"><strong class="block mb-1 text-lg">Behind The Scenes</strong><p class="vg-mini">Process, workflows, decisions, tools.</p></div>
+            <div class="vg-mind-node right vg-n6"><strong class="block mb-1 text-lg">Community</strong><p class="vg-mini">Comments, questions, collaborations, replies.</p></div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Framework Diagram</div>
+          <h2 class="font-heading text-3xl mb-6">The 4P Content Framework</h2>
+          <div class="vg-framework">
+            <div class="vg-framework-card">
+              <div class="top vg-blue">Point</div>
+              <div class="body"><strong>Say one clear thing.</strong><p class="vg-mini">A post should have one main idea, not ten small ideas fighting for attention.</p></div>
+            </div>
+            <div class="vg-framework-card">
+              <div class="top vg-green">Proof</div>
+              <div class="body"><strong>Make it believable.</strong><p class="vg-mini">Use data, examples, client stories, screenshots, or specific details.</p></div>
+            </div>
+            <div class="vg-framework-card">
+              <div class="top vg-amber">Personal</div>
+              <div class="body"><strong>Add your lived insight.</strong><p class="vg-mini">Explain what you saw, learned, changed, or now believe.</p></div>
+            </div>
+            <div class="vg-framework-card">
+              <div class="top vg-violet">Prompt</div>
+              <div class="body"><strong>Invite action.</strong><p class="vg-mini">Ask a question, invite a DM, offer a resource, or suggest a next step.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Timeline</div>
+          <h2 class="font-heading text-3xl mb-6">90-Day LinkedIn Growth Plan</h2>
+          <div class="vg-timeline">
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Week 1</h3><p class="vg-mini">Fix profile, headline, banner, featured links, and offer clarity.</p></div>
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Weeks 2-3</h3><p class="vg-mini">Test 3-4 content pillars and comment daily on relevant creators.</p></div>
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Weeks 4-5</h3><p class="vg-mini">Double down on posts that get saves, replies, and profile visits.</p></div>
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Weeks 6-8</h3><p class="vg-mini">Add proof posts, soft CTAs, and a simple lead magnet.</p></div>
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Weeks 9-11</h3><p class="vg-mini">Repurpose winning ideas into carousel, video, text, and newsletter formats.</p></div>
+            <div class="vg-time-item"><span class="vg-dot"></span><h3 class="font-bold mb-2">Week 12</h3><p class="vg-mini">Review analytics and build the next 90-day content calendar.</p></div>
+          </div>
+        </div>
+
+        <div class="vg-section vg-table-wrap">
+          <div class="vg-kicker">Comparison Table</div>
+          <h2 class="font-heading text-3xl mb-6">Content Types Compared</h2>
+          <table>
+            <thead>
+              <tr><th>Type</th><th>Best For</th><th>Use When</th><th>Common Mistake</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Text Post</strong></td><td>Stories, opinions, lessons</td><td>You have a sharp idea or personal insight</td><td>Writing vague motivational content</td></tr>
+              <tr><td><strong>Carousel / Document</strong></td><td>Frameworks, lists, step-by-step teaching</td><td>The idea is visual or saveable</td><td>Too much text on each slide</td></tr>
+              <tr><td><strong>Video</strong></td><td>Trust, personality, demonstrations</td><td>Your face, voice, or screen adds clarity</td><td>Overproducing instead of being useful</td></tr>
+              <tr><td><strong>Case Study</strong></td><td>Lead generation and trust</td><td>You can show a real problem, action, and result</td><td>Only showing the win, not the process</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Pyramid Diagram</div>
+          <h2 class="font-heading text-3xl mb-6">LinkedIn Trust Pyramid</h2>
+          <div class="vg-pyramid">
+            <div class="vg-pyr-level vg-p1">Sales Conversation</div>
+            <div class="vg-pyr-level vg-p2">Direct Message</div>
+            <div class="vg-pyr-level vg-p3">Comments And Replies</div>
+            <div class="vg-pyr-level vg-p4">Useful Content</div>
+            <div class="vg-pyr-level vg-p5">Clear Positioning</div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Funnel Diagram</div>
+          <h2 class="font-heading text-3xl mb-6">LinkedIn Lead Funnel</h2>
+          <div class="vg-funnel">
+            <div class="vg-funnel-level vg-f1">Reach: Posts, comments, search, shares</div>
+            <div class="vg-funnel-level vg-f2">Attention: Strong hook and useful idea</div>
+            <div class="vg-funnel-level vg-f3">Trust: Proof, story, expertise, consistency</div>
+            <div class="vg-funnel-level vg-f4">Intent: Profile visit, comment, DM, resource request</div>
+            <div class="vg-funnel-level vg-f5">Lead: Call, audit, demo, proposal</div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Infographic</div>
+          <h2 class="font-heading text-3xl mb-6">The Weekly Content Operating System</h2>
+          <div class="vg-infographic">
+            <div class="vg-big-stat">
+              <div class="large">5</div>
+              <h3 class="font-bold text-2xl">Posts Per Week Is A Strong Target</h3>
+              <p>Use fewer if quality drops. Consistency matters, but useful specificity matters more.</p>
+            </div>
+            <div class="vg-stat-list">
+              <div class="vg-stat"><div class="vg-icon vg-blue">2</div><div><strong>Educational posts</strong><p class="vg-mini">Frameworks, how-to posts, checklists.</p></div></div>
+              <div class="vg-stat"><div class="vg-icon vg-green">1</div><div><strong>Story post</strong><p class="vg-mini">A real lesson from work or life.</p></div></div>
+              <div class="vg-stat"><div class="vg-icon vg-violet">1</div><div><strong>Proof post</strong><p class="vg-mini">Case study, result, teardown, or example.</p></div></div>
+              <div class="vg-stat"><div class="vg-icon vg-amber">1</div><div><strong>Opinion post</strong><p class="vg-mini">Trend, myth, prediction, or point of view.</p></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Process Map</div>
+          <h2 class="font-heading text-3xl mb-6">From Idea To Lead</h2>
+          <div class="vg-process-map">
+            <div class="vg-lane">
+              <h3>Content Creation</h3>
+              <div class="vg-box"><strong>Collect ideas</strong><p class="vg-mini">Questions, client calls, mistakes, trends, and results.</p></div>
+              <div class="vg-box"><strong>Write post</strong><p class="vg-mini">Hook, context, insight, proof, lesson, CTA.</p></div>
+              <div class="vg-box"><strong>Publish</strong><p class="vg-mini">Post when your audience is likely active.</p></div>
+            </div>
+            <div class="vg-lane">
+              <h3>Engagement</h3>
+              <div class="vg-box"><strong>Reply early</strong><p class="vg-mini">Start real conversations in the first few hours.</p></div>
+              <div class="vg-box"><strong>Comment outward</strong><p class="vg-mini">Add value on relevant industry posts.</p></div>
+              <div class="vg-box"><strong>Track signals</strong><p class="vg-mini">Profile visits, DMs, saves, and meaningful comments.</p></div>
+            </div>
+            <div class="vg-lane">
+              <h3>Lead Conversion</h3>
+              <div class="vg-box"><strong>Warm DM</strong><p class="vg-mini">Reference the post or comment before asking anything.</p></div>
+              <div class="vg-box"><strong>Qualify</strong><p class="vg-mini">Ask about problem, urgency, fit, and current process.</p></div>
+              <div class="vg-box"><strong>Next step</strong><p class="vg-mini">Offer call, audit, demo, proposal, or resource.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Decision Tree</div>
+          <h2 class="font-heading text-3xl mb-6">What Should I Post Today?</h2>
+          <div class="vg-decision">
+            <div class="vg-tree">
+              <div class="vg-question">Do you have a recent client result, project, or proof point?</div>
+              <div class="vg-branch-row">
+                <div class="vg-answer vg-yes"><strong>Yes</strong><p class="vg-mini">Post a case study: problem, action, result, lesson.</p></div>
+                <div class="vg-answer vg-no"><strong>No</strong><p class="vg-mini">Ask the next question.</p></div>
+              </div>
+              <div class="vg-question">Did you learn something from a mistake, call, or decision?</div>
+              <div class="vg-branch-row">
+                <div class="vg-answer vg-yes"><strong>Yes</strong><p class="vg-mini">Post a story: moment, tension, decision, lesson.</p></div>
+                <div class="vg-answer vg-no"><strong>No</strong><p class="vg-mini">Ask the next question.</p></div>
+              </div>
+              <div class="vg-question">Can you teach one useful step your audience needs?</div>
+              <div class="vg-branch-row">
+                <div class="vg-answer vg-yes"><strong>Yes</strong><p class="vg-mini">Post a framework, checklist, or teardown.</p></div>
+                <div class="vg-answer vg-no"><strong>No</strong><p class="vg-mini">Curate: respond to a trend with your point of view.</p></div>
+              </div>
+            </div>
+            <div class="vg-box">
+              <h3 class="font-bold text-xl text-primary mb-2">Post Quality Checklist</h3>
+              <div class="vg-checklist">
+                <div class="vg-check">One clear audience</div>
+                <div class="vg-check">One clear idea</div>
+                <div class="vg-check">Specific example or proof</div>
+                <div class="vg-check">Plain human language</div>
+                <div class="vg-check">Useful takeaway</div>
+                <div class="vg-check">Soft next step</div>
+                <div class="vg-check">No generic AI wording</div>
+                <div class="vg-check">No hard pitch too early</div>
+              </div>
+              <p style="margin-top:16px" class="vg-mini">If a post passes this checklist, it has a much better chance of attracting the right people.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="vg-section">
+          <div class="vg-kicker">Storytelling Template</div>
+          <h2 class="font-heading text-3xl mb-6">The LinkedIn Story Arc</h2>
+          <div class="vg-grid-3">
+            <div class="vg-box"><span class="vg-pill">1</span><h3 class="font-bold text-lg mb-1 mt-2">Moment</h3><p class="vg-mini">What happened? Start with a real scene or situation.</p></div>
+            <div class="vg-box"><span class="vg-pill">2</span><h3 class="font-bold text-lg mb-1 mt-2">Tension</h3><p class="vg-mini">What was difficult, surprising, risky, or confusing?</p></div>
+            <div class="vg-box"><span class="vg-pill">3</span><h3 class="font-bold text-lg mb-1 mt-2">Decision</h3><p class="vg-mini">What did you do, change, test, or stop doing?</p></div>
+            <div class="vg-box"><span class="vg-pill">4</span><h3 class="font-bold text-lg mb-1 mt-2">Result</h3><p class="vg-mini">What changed? Use concrete outcomes where possible.</p></div>
+            <div class="vg-box"><span class="vg-pill">5</span><h3 class="font-bold text-lg mb-1 mt-2">Lesson</h3><p class="vg-mini">What should the reader understand or do differently?</p></div>
+            <div class="vg-box"><span class="vg-pill">6</span><h3 class="font-bold text-lg mb-1 mt-2">CTA</h3><p class="vg-mini">Ask a thoughtful question or offer a useful next step.</p></div>
+          </div>
+        </div>
+
+        <!-- Work With Me / Lead Magnet CTA (Moved here) -->
+        <div class="mt-8 bg-charcoal text-white p-10 rounded-2xl border border-bordercolor editorial-shadow relative overflow-hidden no-print">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-primary opacity-20 rounded-full blur-[70px] -mr-10 -mt-10 pointer-events-none"></div>
+            
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <span class="font-mono text-primary text-sm font-bold tracking-widest uppercase mb-2 block">Need Hands-On Execution?</span>
+                    <h3 class="font-heading text-3xl mb-4">Let's Build Your LinkedIn Engine Together</h3>
+                    <p class="text-lightgray text-sm md:text-base leading-relaxed mb-8">
+                        Knowing the strategy is only 10% of the battle. If you are a founder, executive, or creator who wants to skip the trial-and-error phase, I can help you completely overhaul your profile, design your content pillars, and build a system that generates inbound leads on autopilot.
+                    </p>
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-4">
+                        <a href="https://topmate.io/theadilahmad/878470" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center bg-primary text-white font-bold font-mono text-sm uppercase px-6 py-4 rounded-lg hover:bg-white hover:text-primary transition-colors border-2 border-primary hover:border-white text-center">
+                            Book a Strategy Call
+                        </a>
+                        <a href="mailto:adil29ahmad@gmail.com" class="inline-flex items-center justify-center bg-transparent text-white font-bold font-mono text-sm uppercase px-6 py-4 rounded-lg hover:bg-white/10 transition-colors border-2 border-white/30 hover:border-white text-center">
+                            Email Me
+                        </a>
+                        <a href="https://www.linkedin.com/in/theadilahmad/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center bg-[#0A66C2] text-white font-bold font-mono text-sm uppercase px-6 py-4 rounded-lg hover:bg-[#004182] transition-colors border-2 border-[#0A66C2] hover:border-[#004182] text-center">
+                            Connect on LinkedIn
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex justify-end">
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-xl w-full max-w-md backdrop-blur-sm shadow-xl">
+                        <h4 class="font-heading text-xl mb-5 border-b border-white/10 pb-3 text-white">What we will cover:</h4>
+                        <ul class="space-y-4 font-mono text-sm text-lightgray">
+                            <li class="flex items-start gap-3"><span class="text-primary font-bold text-lg leading-none">✓</span> <span><strong>Full Profile Optimization:</strong> Turn your profile into a high-converting landing page.</span></li>
+                            <li class="flex items-start gap-3"><span class="text-primary font-bold text-lg leading-none">✓</span> <span><strong>Content Pillar Strategy:</strong> Find your unique, profitable niche.</span></li>
+                            <li class="flex items-start gap-3"><span class="text-primary font-bold text-lg leading-none">✓</span> <span><strong>Copywriting Engineering:</strong> Write hooks that force users to stop scrolling.</span></li>
+                            <li class="flex items-start gap-3"><span class="text-primary font-bold text-lg leading-none">✓</span> <span><strong>Lead Generation Systems:</strong> Move attention off rented land and into your pipeline.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-bg text-darkgray py-12 border-t border-bordercolor no-print">
+        <div class="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h2 class="font-heading text-2xl tracking-tight text-charcoal">THE <span class="text-primary">CATALYST</span> FRAMEWORK</h2>
+                <p class="text-sm mt-2 max-w-md">Built as a visual learning guide for LinkedIn content creation, growth, lead generation, and storytelling.</p>
+                
+                <div class="flex items-center gap-4 mt-4 font-mono text-xs">
+                    <a href="mailto:adil29ahmad@gmail.com" class="hover:text-primary transition-colors flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        adil29ahmad@gmail.com
+                    </a>
+                    <span class="text-bordercolor">|</span>
+                    <a href="https://www.linkedin.com/in/theadilahmad/" target="_blank" rel="noopener noreferrer" class="hover:text-[#0A66C2] transition-colors flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                        in/theadilahmad
+                    </a>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="font-mono text-xs text-primary uppercase tracking-widest">Master Strategy Blueprint</span>
+                <p class="text-sm mt-1">&copy; 2026 Algorithmic Growth</p>
+                <p class="font-mono text-xs mt-2 uppercase tracking-wide text-charcoal font-bold">By Adil Ahmad</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
